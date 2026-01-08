@@ -167,23 +167,18 @@ try:
 
 	if format == "nucl":
 		sequences = 0
-		with open(str(args.i[0]),'r') as infile:
-			with open(str(out_folder)+str(base)+'.parallel-runs.temp', 'w') as outfile:
-				for name, seq in SimpleFastaParser(infile):
-					outfile.write(str(name) + '\n')
-					sequences += 1
+		get_seq_name = f"grep '>' {args.i[0]} | sed 's/>//g' | sed 's/ .*//g' | sort -R > " + (str(out_folder)+str(base)+'.parallel-runs.txt')
+		subprocess.run(get_seq_name, shell=True)
+		# 统计行数
+		get_lines = "wc -l "  + (str(out_folder)+str(base)+'.parallel-runs.txt')
+		sequences = int(subprocess.run(get_lines, shell=True,capture_output=True).stdout.decode('utf8').split(' ')[0])
 
-	shuffle = 'sort -R ' + str(out_folder)+str(base)+'.parallel-runs.temp > ' + str(out_folder)+str(base)+'.parallel-runs.txt'
-	s2 = subprocess.Popen(shuffle, shell=True)
-	s2.wait()
-	subprocess.Popen('rm ' + str(out_folder)+base + '.parallel-runs.temp', shell=True)
-	time.sleep(0.1)
-
+    # 按线程数拆分序列
 	lines = math.ceil(int(sequences)/int(threads))
 	parallel = 'split -l ' + str(lines) + ' ' + str(out_folder)+str(base)+'.parallel-runs.txt' + ' ' + str(out_folder)+str(base)+'.parallel-runs_'
 	subprocess.run(parallel, shell=True)
 	time.sleep(0.1)
-
+	# 添加 txt 后缀
 	move = 'for file in ' + str(out_folder)+str(base) + '.parallel-runs_*; do mv $file ${file}.txt; done'
 	s1 = subprocess.Popen(move, shell=True)
 	s1.wait()
@@ -198,9 +193,9 @@ try:
 	p_list = []
 	while n < len(parallels2):
 		if format == "nucl":
-			execute = str(vibrant_path) + '/scripts/VIBRANT_extract_nucleotide.py ' + str(parallels2[n]) + " " + str(parallels2[n]).rsplit(".",1)[0] + ".fna " + str(args.i[0]) + " " + str(lim_low)
+			execute = f"seqkit grep -f '{parallels2[n]}' '{str(args.i[0])}' -o " + str(parallels2[n]).rsplit(".",1)[0] + ".fna"
 		elif format == "prot":
-			execute = str(vibrant_path) + '/scripts/VIBRANT_extract_protein.py ' + str(parallels2[n]) + " " + str(parallels2[n]).rsplit(".",1)[0] + ".faa " + str(args.i[0])
+			execute = f"seqkit grep -f '{parallels2[n]}' '{str(args.i[0])}' -o " + str(parallels2[n]).rsplit(".",1)[0] + ".fna"
 		p = subprocess.Popen(execute, shell=True)
 		p_list.append(p)
 		n += 1
