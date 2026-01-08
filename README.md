@@ -134,6 +134,7 @@ Please ensure the following programs are installed and in your machine's PATH. N
 4. gzip: http://www.gzip.org/
 5. tar: https://www.gnu.org/software/tar/
 6. wget: https://www.gnu.org/software/wget/
+7. seqkit: https://github.com/shenwei356/seqkit
 
 ##### Example Installations:  
 1. Python3: see Python webpage. You can check your current version using `python --version`. Required version >= 3.5.
